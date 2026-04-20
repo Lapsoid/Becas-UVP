@@ -1,0 +1,20 @@
+// server/prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-node"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id        Int      @id @default(autoincrement())
+  nombre    String
+  email     String   @unique
+  matricula String   @unique
+  password  String
+  rol       String   // "ALUMNO" o "ADMIN"
+  createdAt DateTime @default(now())
+}
