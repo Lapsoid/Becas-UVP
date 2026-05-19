@@ -1,20 +1,90 @@
 // server/prisma/schema.prisma
 
 generator client {
-  provider = "prisma-client-node"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
+// --- ENTIDADES ---
+
 model Usuario {
-  id        Int      @id @default(autoincrement())
-  nombre    String
-  email     String   @unique
-  matricula String   @unique
-  password  String
-  rol       String   // "ALUMNO" o "ADMIN"
-  createdAt DateTime @default(now())
+  id              Int         @id @default(autoincrement())
+  matricula       String      @unique
+  nombre          String
+  email           String      @unique
+  password        String
+  rol             Rol         @default(ALUMNO)
+  fechaCreacion   DateTime    @default(now())
+  
+  // Relación: Un alumno tiene muchas solicitudes
+  solicitudes     Solicitud[]
+}
+
+model Convocatoria {
+  id              Int         @id @default(autoincrement())
+  nombre          String
+  descripcion     String      @db.Text
+  tipo            TipoBeca
+  promedioMinimo  Float
+  fechaApertura   DateTime
+  fechaCierre     DateTime
+  
+  // Para requisitos dinámicos (Ej: {"entrevista": boolean, "documentoExtra": string})
+  requisitosExtra Json? @default("{}")
+  
+  // Relación: Una convocatoria recibe muchas solicitudes
+  solicitudes     Solicitud[]
+}
+
+model Solicitud {
+  id              Int         @id @default(autoincrement())
+  estado          Estado      @default(EN_REVISION)
+  fechaEnvio      DateTime    @default(now())
+  
+  // Datos del formulario (Snapshot al momento de aplicar)
+  grado           String
+  promedio        Float
+  curp            String
+  edad            Int
+  direccion       String
+  localidad       String
+  cp              String
+  telefono        String
+  correo          String
+  motivo          String      @db.Text
+  cardexUrl       String      // URL de Cloudinary
+  
+  // Respuestas a requisitos dinámicos
+  respuestasExtra Json? @default("{}")
+
+  // --- LLAVES FORÁNEAS (RELACIONES) ---
+  
+  usuarioId       Int
+  usuario         Usuario     @relation(fields: [usuarioId], references: [id])
+  
+  convocatoriaId  Int
+  convocatoria    Convocatoria @relation(fields: [convocatoriaId], references: [id])
+}
+
+// --- ENUMS PARA INTEGRIDAD ---
+
+enum Rol {
+  ALUMNO
+  ADMIN
+}
+
+enum TipoBeca {
+  CULTURAL
+  DEPORTIVA
+  ACADEMICA
+  EXCELENCIA
+}
+
+enum Estado {
+  EN_REVISION
+  APROBADO
+  DENEGADO
 }
