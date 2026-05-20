@@ -107,4 +107,3 @@ Abre **otra ventana de la terminal** (deja el servidor corriendo) y sigue estos 
 
 - **¿Tienes un error de Prisma?** Si modificas el archivo `schema.prisma`, recuerda correr siempre `npx prisma generate` y `npx prisma db push` para que los cambios se reflejen.
 - **Prisma Studio:** Si quieres ver qué datos hay en la base de datos con una interfaz gráfica bonita, ve a la carpeta `/server` y corre `npx prisma studio`. Se abrirá en tu navegador.
-- **Tipado con TypeScript:** Si ves que algo está marcado en rojo en tu editor (como VS Code), revisa el tipo de dato que estás enviando. TypeScript está ahí para ayudarte a evitar errores antes de que la app falle.
