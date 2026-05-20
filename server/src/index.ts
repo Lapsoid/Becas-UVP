@@ -1,4 +1,4 @@
-import 'dotenv/config'; // ¡Debe ser la línea 1!
+import 'dotenv/config'; 
 import express from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';

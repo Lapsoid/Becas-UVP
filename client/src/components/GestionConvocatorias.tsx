@@ -143,7 +143,7 @@ const GestionConvocatorias = () => {
     setFormData({
       nombre: '',
       descripcion: '',
-      tipo: 'académica',
+      tipo: 'ACADEMICA',
       promedioMinimo: 0,
       fechaCierre: ''
     });
@@ -262,10 +262,10 @@ const GestionConvocatorias = () => {
                     onChange={handleInputChange}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B2B91] focus:border-transparent"
                   >
-                    <option value="académica">Académica</option>
-                    <option value="deportiva">Deportiva</option>
-                    <option value="cultural">Cultural</option>
-                    <option value="socioeconómica">Socioeconómica</option>
+                    <option value="ACADEMICA">Académica</option>
+                    <option value="DEPORTIVA">Deportiva</option>
+                    <option value="CULTURAL">Cultural</option>
+                    <option value="SOCIOECONOMICA">Socioeconómica</option>
                   </select>
                 </div>
 
