@@ -5,7 +5,7 @@ interface Solicitud {
   id: number;
   convocatoriaId: number;
   convocatoriaNombre: string;
-  estado: 'pendiente' | 'aprobada' | 'rechazada';
+  estado: 'en_revision' | 'aprobado' | 'denegado';
   fechaSolicitud: string;
   fechaActualizacion: string;
 }
@@ -33,11 +33,11 @@ const Status = () => {
 
   const getEstadoBadgeColor = (estado: string) => {
     switch (estado) {
-      case 'aprobada':
+      case 'aprobado':
         return 'bg-green-100 text-green-800';
-      case 'rechazada':
+      case 'denegado':
         return 'bg-red-100 text-red-800';
-      case 'pendiente':
+      case 'en_revision':
       default:
         return 'bg-yellow-100 text-yellow-800';
     }
@@ -45,13 +45,25 @@ const Status = () => {
 
   const getEstadoIcon = (estado: string) => {
     switch (estado) {
-      case 'aprobada':
+      case 'aprobado':
         return '✓';
-      case 'rechazada':
+      case 'denegado':
         return '✕';
-      case 'pendiente':
+      case 'en_revision':
       default:
         return '⏳';
+    }
+  };
+
+  const formatEstadoTexto = (estado: string) => {
+    switch (estado) {
+      case 'aprobado':
+        return 'Aprobada';
+      case 'denegado':
+        return 'Rechazada';
+      case 'en_revision':
+      default:
+        return 'En Revisión';
     }
   };
 
@@ -113,7 +125,7 @@ const Status = () => {
                   <div className="ml-4">
                     <div className={`px-4 py-2 rounded-full font-semibold flex items-center gap-2 ${getEstadoBadgeColor(solicitud.estado)}`}>
                       <span className="text-lg">{getEstadoIcon(solicitud.estado)}</span>
-                      <span className="capitalize">{solicitud.estado}</span>
+                      <span className="capitalize">{formatEstadoTexto(solicitud.estado)}</span>
                     </div>
                   </div>
                 </div>
@@ -126,7 +138,7 @@ const Status = () => {
         <div className="mt-12 bg-blue-50 border-l-4 border-blue-400 rounded-lg p-6">
           <h3 className="font-bold text-blue-900 mb-2">Información sobre Estados</h3>
           <ul className="text-sm text-blue-800 space-y-1">
-            <li><strong>Pendiente:</strong> Tu solicitud está siendo revisada por el departamento de becas</li>
+            <li><strong>En Revisión:</strong> Tu solicitud está siendo revisada por el departamento de becas</li>
             <li><strong>Aprobada:</strong> ¡Felicidades! Tu solicitud ha sido aprobada</li>
             <li><strong>Rechazada:</strong> Lamentablemente, tu solicitud no fue aprobada. Contacta a servicios escolares para más información</li>
           </ul>

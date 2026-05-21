@@ -29,12 +29,39 @@ export const ListaConvocatorias = () => {
 
   const handlePostulate = async (convocatoriaId: number) => {
     const userId = localStorage.getItem('userId');
+    const userRole = localStorage.getItem('userRole');
+
     if (!userId) {
       alert('Debes iniciar sesión para postularte');
       return;
     }
 
+    if (userRole === 'ADMIN') {
+      alert('Los administradores no pueden postularse a las convocatorias.');
+      return;
+    }
+
+    const targetConvocatoria = convocatorias.find(c => c.id === convocatoriaId);
+    if (!targetConvocatoria) return;
+
     try {
+      // Obtener solicitudes actuales del usuario
+      const solicitudesRes = await fetch(`http://localhost:3000/api/solicitudes/${userId}`);
+      if (solicitudesRes.ok) {
+        const userSolicitudes = await solicitudesRes.json();
+        
+        // Verificar si ya se postuló a una convocatoria del mismo tipo
+        const hasSameType = userSolicitudes.some((solicitud: any) => {
+          const appliedConvocatoria = convocatorias.find(c => c.id === solicitud.convocatoriaId);
+          return appliedConvocatoria && appliedConvocatoria.tipo === targetConvocatoria.tipo;
+        });
+
+        if (hasSameType) {
+          alert(`Ya te has postulado a una convocatoria de tipo ${targetConvocatoria.tipo}. No puedes solicitar otra del mismo tipo.`);
+          return;
+        }
+      }
+
       const response = await fetch('http://localhost:3000/api/solicitudes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -44,7 +71,8 @@ export const ListaConvocatorias = () => {
       if (response.ok) {
         alert('¡Te has postulado exitosamente!');
       } else {
-        alert('Error al postularte. Intenta nuevamente.');
+        const errorData = await response.json().catch(() => null);
+        alert(errorData?.error || 'Error al postularte. Intenta nuevamente.');
       }
     } catch (error) {
       console.error('Error:', error);
