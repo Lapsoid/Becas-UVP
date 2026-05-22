@@ -49,7 +49,7 @@ Asegúrate de tener instalado lo siguiente en tu computadora:
 ### Paso 1: Clonar el repositorio
 Si no lo has hecho, clona el proyecto en tu computadora:
 ```bash
-git clone <url-del-repositorio>
+git clone https://github.com/Lapsoid/Becas-UVP.git
 cd Becas-UVP
 ```
 
