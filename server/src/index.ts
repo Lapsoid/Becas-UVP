@@ -223,7 +223,7 @@ app.get('/api/solicitudes/:usuarioId', async (req, res) => {
 
 // POST: Crear solicitud (postularse a convocatoria)
 app.post('/api/solicitudes', async (req, res) => {
-  const { usuarioId, convocatoriaId } = req.body;
+  const { usuarioId, convocatoriaId, grado, promedio, curp, edad, direccion, localidad, cp, telefono, correo, motivo, cardexUrl } = req.body;
 
   try {
     // Verificar que el usuario no haya solicitado ya esta convocatoria
@@ -243,17 +243,17 @@ app.post('/api/solicitudes', async (req, res) => {
         usuarioId: parseInt(usuarioId),
         convocatoriaId: parseInt(convocatoriaId),
         estado: 'EN_REVISION',
-        grado: '',
-        promedio: 0,
-        curp: '',
-        edad: 0,
-        direccion: '',
-        localidad: '',
-        cp: '',
-        telefono: '',
-        correo: '',
-        motivo: '',
-        cardexUrl: ''
+        grado: grado || '',
+        promedio: promedio || 0,
+        curp: curp || '',
+        edad: edad || 0,
+        direccion: direccion || '',
+        localidad: localidad || '',
+        cp: cp || '',
+        telefono: telefono || '',
+        correo: correo || '',
+        motivo: motivo || '',
+        cardexUrl: cardexUrl || ''
       }
     });
 

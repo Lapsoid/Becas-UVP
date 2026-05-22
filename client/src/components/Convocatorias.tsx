@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import Navbar from './Navbar';
+import Modal from './Modal';
+import SolicitudForm from './SolicitudForm';
 
 interface Convocatoria {
   id: number;
@@ -13,6 +15,9 @@ interface Convocatoria {
 export const ListaConvocatorias = () => {
   const [convocatorias, setConvocatorias] = useState<Convocatoria[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedConvocatoria, setSelectedConvocatoria] = useState<Convocatoria | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     fetch('http://localhost:3000/api/convocatorias')
@@ -27,7 +32,7 @@ export const ListaConvocatorias = () => {
       });
   }, []);
 
-  const handlePostulate = async (convocatoriaId: number) => {
+  const handlePostulateClick = async (convocatoriaId: number) => {
     const userId = localStorage.getItem('userId');
     const userRole = localStorage.getItem('userRole');
 
@@ -45,12 +50,10 @@ export const ListaConvocatorias = () => {
     if (!targetConvocatoria) return;
 
     try {
-      // Obtener solicitudes actuales del usuario
       const solicitudesRes = await fetch(`http://localhost:3000/api/solicitudes/${userId}`);
       if (solicitudesRes.ok) {
         const userSolicitudes = await solicitudesRes.json();
         
-        // Verificar si ya se postuló a una convocatoria del mismo tipo
         const hasSameType = userSolicitudes.some((solicitud: any) => {
           const appliedConvocatoria = convocatorias.find(c => c.id === solicitud.convocatoriaId);
           return appliedConvocatoria && appliedConvocatoria.tipo === targetConvocatoria.tipo;
@@ -62,14 +65,34 @@ export const ListaConvocatorias = () => {
         }
       }
 
+      setSelectedConvocatoria(targetConvocatoria);
+      setShowModal(true);
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error de conexión');
+    }
+  };
+
+  const handleFormSubmit = async (formData: any) => {
+    const userId = localStorage.getItem('userId');
+    if (!userId || !selectedConvocatoria) return;
+
+    setSubmitting(true);
+    try {
       const response = await fetch('http://localhost:3000/api/solicitudes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ usuarioId: userId, convocatoriaId })
+        body: JSON.stringify({
+          usuarioId: parseInt(userId),
+          convocatoriaId: selectedConvocatoria.id,
+          ...formData
+        })
       });
 
       if (response.ok) {
         alert('¡Te has postulado exitosamente!');
+        setShowModal(false);
+        setSelectedConvocatoria(null);
       } else {
         const errorData = await response.json().catch(() => null);
         alert(errorData?.error || 'Error al postularte. Intenta nuevamente.');
@@ -77,6 +100,8 @@ export const ListaConvocatorias = () => {
     } catch (error) {
       console.error('Error:', error);
       alert('Error de conexión');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -110,7 +135,7 @@ export const ListaConvocatorias = () => {
                   <p className="font-bold text-[#8B2B91]">{beca.promedioMinimo}</p>
                 </div>
                 <button 
-                  onClick={() => handlePostulate(beca.id)}
+                  onClick={() => handlePostulateClick(beca.id)}
                   className="bg-[#8B2B91] text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-[#7a2580] transition"
                 >
                   Postularse
@@ -119,6 +144,23 @@ export const ListaConvocatorias = () => {
             </div>
           ))}
         </div>
+
+        {/* Modal de postulación */}
+        <Modal
+          isOpen={showModal}
+          onClose={() => { setShowModal(false); setSelectedConvocatoria(null); }}
+          title="Postularse a Convocatoria"
+          size="md"
+        >
+          {selectedConvocatoria && (
+            <SolicitudForm
+              convocatoria={selectedConvocatoria}
+              onSubmit={handleFormSubmit}
+              onCancel={() => { setShowModal(false); setSelectedConvocatoria(null); }}
+              loading={submitting}
+            />
+          )}
+        </Modal>
       </main>
     </div>
   );

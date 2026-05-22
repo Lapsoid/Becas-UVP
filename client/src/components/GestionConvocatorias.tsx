@@ -1,4 +1,5 @@
 import Navbar from './Navbar';
+import Modal from './Modal';
 import { useEffect, useState } from 'react';
 
 interface Usuario {
@@ -318,112 +319,96 @@ const GestionConvocatorias = () => {
         )}
 
         {/* Modal de Solicitudes */}
-        {showSolicitudesModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-              <div className="p-6 border-b border-gray-200 flex justify-between items-center bg-gray-50">
-                <h2 className="text-2xl font-bold text-gray-800">
-                  Solicitudes para {selectedConvocatoria?.nombre}
-                </h2>
-                <button
-                  onClick={() => setShowSolicitudesModal(false)}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-              
-              <div className="p-6 overflow-y-auto flex-1">
-                {loadingSolicitudes ? (
-                  <p className="text-center text-gray-500 my-8">Cargando solicitudes...</p>
-                ) : solicitudes.length === 0 ? (
-                  <p className="text-center text-gray-500 my-8">No hay solicitudes para esta convocatoria.</p>
-                ) : (
-                  <div className="space-y-4">
-                    {solicitudes.map((solicitud) => (
-                      <div key={solicitud.id} className="border border-gray-200 rounded-lg p-4 shadow-sm">
-                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                          <div className="flex-1">
-                            <h3 className="font-bold text-lg text-gray-800">{solicitud.usuario?.nombre || 'Estudiante'}</h3>
-                            <div className="flex gap-4 mt-1 text-sm text-gray-600">
-                              <p><span className="font-semibold">Promedio:</span> {solicitud.promedio}</p>
-                              <p><span className="font-semibold">Estado:</span> 
-                                <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-bold ${
-                                  solicitud.estado === 'APROBADO' ? 'bg-green-100 text-green-800' : 
-                                  solicitud.estado === 'DENEGADO' ? 'bg-red-100 text-red-800' : 
-                                  'bg-yellow-100 text-yellow-800'
-                                }`}>
-                                  {solicitud.estado}
-                                </span>
-                              </p>
-                            </div>
-                          </div>
-                          
-                          <div className="flex flex-wrap gap-2">
-                            <button
-                              onClick={() => setExpandedSolicitudId(expandedSolicitudId === solicitud.id ? null : solicitud.id)}
-                              className="bg-gray-100 text-gray-700 px-3 py-1.5 rounded text-sm font-medium hover:bg-gray-200 transition"
-                            >
-                              {expandedSolicitudId === solicitud.id ? 'Ocultar info' : 'Ver info'}
-                            </button>
-                            
-                            {solicitud.estado === 'EN_REVISION' ? (
-                              <>
-                                <button
-                                  onClick={() => handleUpdateSolicitudStatus(solicitud.id, 'APROBADO')}
-                                  className="bg-green-600 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-green-700 transition"
-                                >
-                                  Aceptar
-                                </button>
-                                <button
-                                  onClick={() => handleUpdateSolicitudStatus(solicitud.id, 'DENEGADO')}
-                                  className="bg-red-600 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-red-700 transition"
-                                >
-                                  Negar
-                                </button>
-                              </>
-                            ) : (
-                              <button
-                                onClick={() => handleUpdateSolicitudStatus(solicitud.id, 'EN_REVISION')}
-                                className="bg-orange-500 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-orange-600 transition"
-                              >
-                                Cancelar selección
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                        
-                        {/* Información expandida */}
-                        {expandedSolicitudId === solicitud.id && (
-                          <div className="mt-4 pt-4 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm bg-gray-50 p-4 rounded-lg">
-                            <div><span className="font-semibold text-gray-700">Matrícula:</span> {solicitud.usuario?.matricula}</div>
-                            <div><span className="font-semibold text-gray-700">Correo:</span> {solicitud.correo}</div>
-                            <div><span className="font-semibold text-gray-700">Teléfono:</span> {solicitud.telefono}</div>
-                            <div><span className="font-semibold text-gray-700">CURP:</span> {solicitud.curp}</div>
-                            <div><span className="font-semibold text-gray-700">Edad:</span> {solicitud.edad} años</div>
-                            <div><span className="font-semibold text-gray-700">Grado:</span> {solicitud.grado}</div>
-                            <div className="md:col-span-2"><span className="font-semibold text-gray-700">Dirección:</span> {solicitud.direccion}, {solicitud.localidad}, CP {solicitud.cp}</div>
-                            <div className="md:col-span-2"><span className="font-semibold text-gray-700">Motivo:</span> <p className="mt-1 text-gray-600">{solicitud.motivo}</p></div>
-                            {solicitud.cardexUrl && (
-                              <div className="md:col-span-2 mt-2">
-                                <a href={solicitud.cardexUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-                                  Ver Cárdex
-                                </a>
-                              </div>
-                            )}
-                          </div>
-                        )}
+        <Modal
+          isOpen={showSolicitudesModal}
+          onClose={() => setShowSolicitudesModal(false)}
+          title={`Solicitudes para ${selectedConvocatoria?.nombre || ''}`}
+        >
+          {loadingSolicitudes ? (
+            <p className="text-center text-gray-500 my-8">Cargando solicitudes...</p>
+          ) : solicitudes.length === 0 ? (
+            <p className="text-center text-gray-500 my-8">No hay solicitudes para esta convocatoria.</p>
+          ) : (
+            <div className="space-y-4">
+              {solicitudes.map((solicitud) => (
+                <div key={solicitud.id} className="border border-gray-200 rounded-lg p-4 shadow-sm">
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div className="flex-1">
+                      <h3 className="font-bold text-lg text-gray-800">{solicitud.usuario?.nombre || 'Estudiante'}</h3>
+                      <div className="flex gap-4 mt-1 text-sm text-gray-600">
+                        <p><span className="font-semibold">Promedio:</span> {solicitud.promedio}</p>
+                        <p><span className="font-semibold">Estado:</span> 
+                          <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-bold ${
+                            solicitud.estado === 'APROBADO' ? 'bg-green-100 text-green-800' : 
+                            solicitud.estado === 'DENEGADO' ? 'bg-red-100 text-red-800' : 
+                            'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {solicitud.estado}
+                          </span>
+                        </p>
                       </div>
-                    ))}
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        onClick={() => setExpandedSolicitudId(expandedSolicitudId === solicitud.id ? null : solicitud.id)}
+                        className="bg-gray-100 text-gray-700 px-3 py-1.5 rounded text-sm font-medium hover:bg-gray-200 transition"
+                      >
+                        {expandedSolicitudId === solicitud.id ? 'Ocultar info' : 'Ver info'}
+                      </button>
+                      
+                      {solicitud.estado === 'EN_REVISION' ? (
+                        <>
+                          <button
+                            onClick={() => handleUpdateSolicitudStatus(solicitud.id, 'APROBADO')}
+                            className="bg-green-600 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-green-700 transition"
+                          >
+                            Aceptar
+                          </button>
+                          <button
+                            onClick={() => handleUpdateSolicitudStatus(solicitud.id, 'DENEGADO')}
+                            className="bg-red-600 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-red-700 transition"
+                          >
+                            Negar
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => handleUpdateSolicitudStatus(solicitud.id, 'EN_REVISION')}
+                          className="bg-orange-500 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-orange-600 transition"
+                        >
+                          Cancelar selección
+                        </button>
+                      )}
+                    </div>
                   </div>
-                )}
-              </div>
+                  
+                  {/* Información expandida */}
+                  {expandedSolicitudId === solicitud.id && (
+                    <div className="mt-4 pt-4 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm bg-gray-50 p-4 rounded-lg">
+                      <div><span className="font-semibold text-gray-700">Matrícula:</span> {solicitud.usuario?.matricula}</div>
+                      <div><span className="font-semibold text-gray-700">Correo:</span> {solicitud.correo}</div>
+                      <div><span className="font-semibold text-gray-700">Teléfono:</span> {solicitud.telefono}</div>
+                      <div><span className="font-semibold text-gray-700">CURP:</span> {solicitud.curp}</div>
+                      <div><span className="font-semibold text-gray-700">Edad:</span> {solicitud.edad} años</div>
+                      <div><span className="font-semibold text-gray-700">Grado:</span> {solicitud.grado}</div>
+                      <div className="md:col-span-2"><span className="font-semibold text-gray-700">Dirección:</span> {solicitud.direccion}, {solicitud.localidad}, CP {solicitud.cp}</div>
+                      <div className="md:col-span-2"><span className="font-semibold text-gray-700">Motivo:</span> <p className="mt-1 text-gray-600">{solicitud.motivo}</p></div>
+                      {solicitud.cardexUrl && (
+                        <div className="md:col-span-2 mt-2">
+                          <a href={solicitud.cardexUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                            Ver Cárdex
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
-          </div>
-        )}
+          )}
+        </Modal>
 
         {/* Lista de Convocatorias */}
         {convocatorias.length === 0 ? (
