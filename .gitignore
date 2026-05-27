@@ -52,3 +52,6 @@ coverage
 
 # TypeScript
 *.tsbuildinfo
+
+# Archivos subidos por usuarios
+/server/uploads/

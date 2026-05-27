@@ -9,9 +9,9 @@ interface Convocatoria {
 
 interface SolicitudFormData {
   grado: string;
-  promedio: number;
+  promedio: string;
   curp: string;
-  edad: number;
+  edad: string;
   direccion: string;
   localidad: string;
   cp: string;
@@ -30,9 +30,9 @@ interface SolicitudFormProps {
 export const SolicitudForm = ({ convocatoria, onSubmit, onCancel, loading }: SolicitudFormProps) => {
   const [formData, setFormData] = useState<SolicitudFormData>({
     grado: '',
-    promedio: 0,
+    promedio: '',
     curp: '',
-    edad: 0,
+    edad: '',
     direccion: '',
     localidad: '',
     cp: '',
@@ -43,14 +43,13 @@ export const SolicitudForm = ({ convocatoria, onSubmit, onCancel, loading }: Sol
 
   const [cardexFile, setCardexFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string>('');
+  const [formError, setFormError] = useState<string>('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'promedio' ? parseFloat(value) || 0
-             : name === 'edad' ? parseInt(value) || 0
-             : value
+      [name]: value
     }));
   };
 
@@ -69,16 +68,37 @@ export const SolicitudForm = ({ convocatoria, onSubmit, onCancel, loading }: Sol
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError('');
+    setFileError('');
+
     if (!cardexFile) {
       setFileError('Por favor, selecciona tu cárdex en formato PDF.');
       return;
     }
 
+    const promedioVal = parseFloat(formData.promedio);
+    const edadVal = parseInt(formData.edad);
+
+    if (isNaN(promedioVal) || promedioVal < 6 || promedioVal > 10) {
+      setFormError('Por favor, ingresa un promedio válido entre 6.0 y 10.0.');
+      return;
+    }
+
+    if (promedioVal < convocatoria.promedioMinimo) {
+      setFormError(`Tu promedio (${promedioVal}) es menor al promedio mínimo requerido (${convocatoria.promedioMinimo}) para esta convocatoria.`);
+      return;
+    }
+
+    if (isNaN(edadVal) || edadVal < 17) {
+      setFormError('La edad mínima para postularse es 17 años.');
+      return;
+    }
+
     const data = new FormData();
     data.append('grado', formData.grado);
-    data.append('promedio', formData.promedio.toString());
+    data.append('promedio', formData.promedio);
     data.append('curp', formData.curp);
-    data.append('edad', formData.edad.toString());
+    data.append('edad', formData.edad);
     data.append('direccion', formData.direccion);
     data.append('localidad', formData.localidad);
     data.append('cp', formData.cp);
@@ -100,6 +120,12 @@ export const SolicitudForm = ({ convocatoria, onSubmit, onCancel, loading }: Sol
         <p className="text-sm text-gray-600">Tipo: {convocatoria.tipo} | Promedio mínimo: {convocatoria.promedioMinimo}</p>
       </div>
 
+      {formError && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm font-semibold">
+          {formError}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className={labelClass}>Grado / Semestre</label>
@@ -107,7 +133,7 @@ export const SolicitudForm = ({ convocatoria, onSubmit, onCancel, loading }: Sol
         </div>
         <div>
           <label className={labelClass}>Promedio</label>
-          <input type="number" name="promedio" value={formData.promedio} onChange={handleChange} step="0.1" min="0" max="10" required className={inputClass} />
+          <input type="number" name="promedio" value={formData.promedio} onChange={handleChange} step="0.1" min="6" max="10" required className={inputClass} />
         </div>
         <div>
           <label className={labelClass}>CURP</label>
@@ -115,7 +141,7 @@ export const SolicitudForm = ({ convocatoria, onSubmit, onCancel, loading }: Sol
         </div>
         <div>
           <label className={labelClass}>Edad</label>
-          <input type="number" name="edad" value={formData.edad} onChange={handleChange} min="1" required className={inputClass} />
+          <input type="number" name="edad" value={formData.edad} onChange={handleChange} min="17" required className={inputClass} />
         </div>
         <div className="md:col-span-2">
           <label className={labelClass}>Dirección</label>
