@@ -55,7 +55,7 @@ model Solicitud {
   telefono        String
   correo          String
   motivo          String      @db.Text
-  cardexUrl       String      // URL de Cloudinary
+  cardexPdf       String      // Ruta del archivo PDF guardado localmente
   
   // Respuestas a requisitos dinámicos
   respuestasExtra Json? @default("{}")

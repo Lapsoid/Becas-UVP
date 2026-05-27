@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import logoUVP from '../assets/logo_uvp_black.png';
+import Modal from './Modal';
 
 const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -9,6 +10,12 @@ const Login = () => {
     email: '',
     password: '',
     rol: 'ALUMNO'
+  });
+  
+  const [alertInfo, setAlertInfo] = useState<{ isOpen: boolean; title: string; message: string }>({
+    isOpen: false,
+    title: '',
+    message: ''
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -31,10 +38,19 @@ const Login = () => {
         // Al tener éxito, redirigimos a la vista de home
         window.location.href = '/home';
       } else {
-        alert('Error en la autenticación. Verifica tus datos.');
+        setAlertInfo({
+          isOpen: true,
+          title: 'Error de Autenticación',
+          message: 'Error en la autenticación. Verifica tus datos.'
+        });
       }
     } catch (error) {
       console.error('Error de conexión:', error);
+      setAlertInfo({
+        isOpen: true,
+        title: 'Error de Conexión',
+        message: 'No se pudo conectar con el servidor.'
+      });
     }
   };
 
@@ -157,7 +173,6 @@ const Login = () => {
         </div>
       </main>
 
-      {/* Pie de página */}
       <footer className="bg-gray-100 p-8 border-t border-gray-200">
         <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 text-sm text-gray-600">
           <div>
@@ -170,6 +185,23 @@ const Login = () => {
           </div>
         </div>
       </footer>
+
+      <Modal
+        isOpen={alertInfo.isOpen}
+        onClose={() => setAlertInfo({ ...alertInfo, isOpen: false })}
+        title={alertInfo.title}
+        size="sm"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-600">{alertInfo.message}</p>
+          <button
+            onClick={() => setAlertInfo({ ...alertInfo, isOpen: false })}
+            className="w-full bg-[#8B2B91] hover:bg-[#7a2580] text-white font-bold py-2 rounded-lg transition"
+          >
+            Aceptar
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 };

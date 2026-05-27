@@ -16,10 +16,10 @@ const sizeClasses = {
 
 export const Modal = ({ isOpen, onClose, title, children, size = 'lg' }: ModalProps) => {
   if (!isOpen) return null;
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className={`bg-white rounded-xl shadow-2xl w-full ${sizeClasses[size]} max-h-[90vh] overflow-hidden flex flex-col`}>
+      <div className="fixed inset-0 bg-white/70 backdrop-blur-sm" onClick={onClose}></div>
+      <div className={`relative z-10 bg-white rounded-xl shadow-2xl w-full ${sizeClasses[size]} max-h-[90vh] overflow-hidden flex flex-col`}>
         <div className="p-6 border-b border-gray-200 flex justify-between items-center bg-gray-50">
           <h2 className="text-2xl font-bold text-gray-800">{title}</h2>
           <button

@@ -5,6 +5,7 @@ interface Solicitud {
   id: number;
   convocatoriaId: number;
   convocatoriaNombre: string;
+  convocatoriaFechaCierre?: string;
   estado: 'en_revision' | 'aprobado' | 'denegado';
   fechaSolicitud: string;
   fechaActualizacion: string;
@@ -107,7 +108,7 @@ const Status = () => {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <h3 className="text-xl font-bold text-gray-800 mb-2">{solicitud.convocatoriaNombre}</h3>
-                    <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-gray-600">
                       <div>
                         <p className="text-gray-400">Fecha de Solicitud</p>
                         <p className="font-semibold text-gray-800">
@@ -115,9 +116,11 @@ const Status = () => {
                         </p>
                       </div>
                       <div>
-                        <p className="text-gray-400">Última Actualización</p>
-                        <p className="font-semibold text-gray-800">
-                          {new Date(solicitud.fechaActualizacion).toLocaleDateString()}
+                        <p className="text-gray-400">Fecha de Cierre de Convocatoria</p>
+                        <p className="font-semibold text-red-600">
+                          {solicitud.convocatoriaFechaCierre 
+                            ? new Date(solicitud.convocatoriaFechaCierre).toLocaleDateString() 
+                            : 'No disponible'}
                         </p>
                       </div>
                     </div>

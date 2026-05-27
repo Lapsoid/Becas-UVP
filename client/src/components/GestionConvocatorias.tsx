@@ -23,7 +23,7 @@ interface Solicitud {
   telefono: string;
   correo: string;
   motivo: string;
-  cardexUrl: string;
+  cardexPdf: string;
   fechaEnvio: string;
 }
 
@@ -53,6 +53,12 @@ const GestionConvocatorias = () => {
     tipo: 'académica',
     promedioMinimo: 0,
     fechaCierre: ''
+  });
+  
+  const [alertInfo, setAlertInfo] = useState<{ isOpen: boolean; title: string; message: string }>({
+    isOpen: false,
+    title: '',
+    message: ''
   });
 
   useEffect(() => {
@@ -98,13 +104,25 @@ const GestionConvocatorias = () => {
         fetchConvocatorias();
         resetForm();
         setShowForm(false);
-        alert(editingId ? 'Convocatoria actualizada' : 'Convocatoria creada');
+        setAlertInfo({
+          isOpen: true,
+          title: 'Operación Exitosa',
+          message: editingId ? 'Convocatoria actualizada con éxito' : 'Convocatoria creada con éxito'
+        });
       } else {
-        alert('Error al guardar la convocatoria');
+        setAlertInfo({
+          isOpen: true,
+          title: 'Error',
+          message: 'Error al guardar la convocatoria'
+        });
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Error de conexión');
+      setAlertInfo({
+        isOpen: true,
+        title: 'Error de Conexión',
+        message: 'Error de conexión con el servidor.'
+      });
     }
   };
 
@@ -129,13 +147,25 @@ const GestionConvocatorias = () => {
 
         if (response.ok) {
           fetchConvocatorias();
-          alert('Convocatoria eliminada');
+          setAlertInfo({
+            isOpen: true,
+            title: 'Eliminado',
+            message: 'Convocatoria eliminada con éxito'
+          });
         } else {
-          alert('Error al eliminar la convocatoria');
+          setAlertInfo({
+            isOpen: true,
+            title: 'Error',
+            message: 'Error al eliminar la convocatoria'
+          });
         }
       } catch (error) {
         console.error('Error:', error);
-        alert('Error de conexión');
+        setAlertInfo({
+          isOpen: true,
+          title: 'Error de Conexión',
+          message: 'Error de conexión con el servidor.'
+        });
       }
     }
   };
@@ -162,11 +192,19 @@ const GestionConvocatorias = () => {
         const data = await response.json();
         setSolicitudes(data);
       } else {
-        alert('Error al obtener solicitudes');
+        setAlertInfo({
+          isOpen: true,
+          title: 'Error',
+          message: 'Error al obtener solicitudes'
+        });
       }
     } catch (error) {
       console.error(error);
-      alert('Error de conexión');
+      setAlertInfo({
+        isOpen: true,
+        title: 'Error de Conexión',
+        message: 'Error de conexión con el servidor.'
+      });
     } finally {
       setLoadingSolicitudes(false);
     }
@@ -183,11 +221,19 @@ const GestionConvocatorias = () => {
       if (response.ok) {
         setSolicitudes(solicitudes.map(s => s.id === solicitudId ? { ...s, estado } : s));
       } else {
-        alert('Error al actualizar estado');
+        setAlertInfo({
+          isOpen: true,
+          title: 'Error',
+          message: 'Error al actualizar el estado de la solicitud.'
+        });
       }
     } catch (error) {
       console.error(error);
-      alert('Error de conexión');
+      setAlertInfo({
+        isOpen: true,
+        title: 'Error de Conexión',
+        message: 'Error de conexión con el servidor.'
+      });
     }
   };
 
@@ -394,11 +440,11 @@ const GestionConvocatorias = () => {
                       <div><span className="font-semibold text-gray-700">Grado:</span> {solicitud.grado}</div>
                       <div className="md:col-span-2"><span className="font-semibold text-gray-700">Dirección:</span> {solicitud.direccion}, {solicitud.localidad}, CP {solicitud.cp}</div>
                       <div className="md:col-span-2"><span className="font-semibold text-gray-700">Motivo:</span> <p className="mt-1 text-gray-600">{solicitud.motivo}</p></div>
-                      {solicitud.cardexUrl && (
+                      {solicitud.cardexPdf && (
                         <div className="md:col-span-2 mt-2">
-                          <a href={solicitud.cardexUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
+                          <a href={`http://localhost:3000${solicitud.cardexPdf}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-                            Ver Cárdex
+                            Ver Cárdex (PDF)
                           </a>
                         </div>
                       )}
@@ -480,6 +526,24 @@ const GestionConvocatorias = () => {
           </div>
         )}
       </main>
+
+      {/* Modal de Alerta */}
+      <Modal
+        isOpen={alertInfo.isOpen}
+        onClose={() => setAlertInfo({ ...alertInfo, isOpen: false })}
+        title={alertInfo.title}
+        size="sm"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-600">{alertInfo.message}</p>
+          <button
+            onClick={() => setAlertInfo({ ...alertInfo, isOpen: false })}
+            className="w-full bg-[#8B2B91] hover:bg-[#7a2580] text-white font-bold py-2 rounded-lg transition"
+          >
+            Aceptar
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 };

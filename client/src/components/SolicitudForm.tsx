@@ -18,12 +18,11 @@ interface SolicitudFormData {
   telefono: string;
   correo: string;
   motivo: string;
-  cardexUrl: string;
 }
 
 interface SolicitudFormProps {
   convocatoria: Convocatoria;
-  onSubmit: (data: SolicitudFormData) => Promise<void>;
+  onSubmit: (formData: FormData) => Promise<void>;
   onCancel: () => void;
   loading?: boolean;
 }
@@ -40,8 +39,10 @@ export const SolicitudForm = ({ convocatoria, onSubmit, onCancel, loading }: Sol
     telefono: '',
     correo: '',
     motivo: '',
-    cardexUrl: '',
   });
+
+  const [cardexFile, setCardexFile] = useState<File | null>(null);
+  const [fileError, setFileError] = useState<string>('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -53,9 +54,40 @@ export const SolicitudForm = ({ convocatoria, onSubmit, onCancel, loading }: Sol
     }));
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFileError('');
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      if (file.type !== 'application/pdf') {
+        setFileError('Solo se permiten archivos en formato PDF.');
+        setCardexFile(null);
+      } else {
+        setCardexFile(file);
+      }
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await onSubmit(formData);
+    if (!cardexFile) {
+      setFileError('Por favor, selecciona tu cárdex en formato PDF.');
+      return;
+    }
+
+    const data = new FormData();
+    data.append('grado', formData.grado);
+    data.append('promedio', formData.promedio.toString());
+    data.append('curp', formData.curp);
+    data.append('edad', formData.edad.toString());
+    data.append('direccion', formData.direccion);
+    data.append('localidad', formData.localidad);
+    data.append('cp', formData.cp);
+    data.append('telefono', formData.telefono);
+    data.append('correo', formData.correo);
+    data.append('motivo', formData.motivo);
+    data.append('cardexPdf', cardexFile);
+
+    await onSubmit(data);
   };
 
   const inputClass = "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B2B91] focus:border-transparent";
@@ -110,9 +142,17 @@ export const SolicitudForm = ({ convocatoria, onSubmit, onCancel, loading }: Sol
           <textarea name="motivo" value={formData.motivo} onChange={handleChange} required rows={4} className={inputClass} />
         </div>
         <div className="md:col-span-2">
-          <label className={labelClass}>URL del Cárdex (PDF)</label>
-          <input type="url" name="cardexUrl" value={formData.cardexUrl} onChange={handleChange} placeholder="https://..." className={inputClass} />
-          <p className="text-xs text-gray-400 mt-1">Sube tu cárdex a Cloudinary y pega la URL aquí</p>
+          <label className={labelClass}>Subir Cárdex (PDF)</label>
+          <input 
+            type="file" 
+            name="cardexPdf" 
+            accept="application/pdf"
+            onChange={handleFileChange} 
+            required
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B2B91] focus:border-transparent file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-[#8B2B91] hover:file:bg-purple-100"
+          />
+          {fileError && <p className="text-sm text-red-600 mt-1 font-medium">{fileError}</p>}
+          <p className="text-xs text-gray-400 mt-1">Selecciona tu archivo de cárdex en formato PDF de tu computadora.</p>
         </div>
       </div>
 

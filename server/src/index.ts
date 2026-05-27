@@ -3,6 +3,9 @@ import express from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
 
 // Instancia del cliente de Prisma para interactuar con Postgres
 const prisma = new PrismaClient({
@@ -13,6 +16,38 @@ const app = express();
 // Middlewares
 app.use(cors()); // Permite peticiones desde tu frontend (Vite)
 app.use(express.json()); // Permite que el servidor reciba datos en formato JSON
+
+// Carpeta física local para guardar archivos subidos
+const uploadDir = path.join(__dirname, '../uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// Configuración de almacenamiento de Multer
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+// Middleware de Multer
+const upload = multer({
+  storage,
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === 'application/pdf') {
+      cb(null, true);
+    } else {
+      cb(new Error('Solo se permiten archivos PDF.'));
+    }
+  }
+});
+
+// Servir la carpeta uploads como estática
+app.use('/uploads', express.static(uploadDir));
 
 // --- RUTAS DE PRUEBA ---
 
@@ -211,6 +246,7 @@ app.get('/api/solicitudes/:usuarioId', async (req, res) => {
       id: s.id,
       convocatoriaId: s.convocatoriaId,
       convocatoriaNombre: s.convocatoria.nombre,
+      convocatoriaFechaCierre: s.convocatoria.fechaCierre,
       estado: s.estado.toLowerCase(),
       fechaSolicitud: s.fechaEnvio,
       fechaActualizacion: s.fechaEnvio
@@ -222,38 +258,53 @@ app.get('/api/solicitudes/:usuarioId', async (req, res) => {
 });
 
 // POST: Crear solicitud (postularse a convocatoria)
-app.post('/api/solicitudes', async (req, res) => {
-  const { usuarioId, convocatoriaId, grado, promedio, curp, edad, direccion, localidad, cp, telefono, correo, motivo, cardexUrl } = req.body;
+app.post('/api/solicitudes', upload.single('cardexPdf'), async (req, res) => {
+  const { usuarioId, convocatoriaId, grado, promedio, curp, edad, direccion, localidad, cp, telefono, correo, motivo } = req.body;
 
   try {
+    const usuarioIdParsed = parseInt(usuarioId);
+    const convocatoriaIdParsed = parseInt(convocatoriaId);
+
+    if (isNaN(usuarioIdParsed) || isNaN(convocatoriaIdParsed)) {
+      return res.status(400).json({ error: 'usuarioId y convocatoriaId válidos son requeridos.' });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: 'El archivo del cárdex (PDF) es requerido.' });
+    }
+
+    const cardexPdfPath = `/uploads/${req.file.filename}`;
+
     // Verificar que el usuario no haya solicitado ya esta convocatoria
     const solicitudExistente = await prisma.solicitud.findFirst({
       where: {
-        usuarioId: parseInt(usuarioId),
-        convocatoriaId: parseInt(convocatoriaId)
+        usuarioId: usuarioIdParsed,
+        convocatoriaId: convocatoriaIdParsed
       }
     });
 
     if (solicitudExistente) {
+      // Eliminar el archivo subido para no dejar basura si la validación falla
+      fs.unlinkSync(req.file.path);
       return res.status(400).json({ error: 'Ya has solicitado esta convocatoria' });
     }
 
     const nuevaSolicitud = await prisma.solicitud.create({
       data: {
-        usuarioId: parseInt(usuarioId),
-        convocatoriaId: parseInt(convocatoriaId),
+        usuarioId: usuarioIdParsed,
+        convocatoriaId: convocatoriaIdParsed,
         estado: 'EN_REVISION',
         grado: grado || '',
-        promedio: promedio || 0,
+        promedio: parseFloat(promedio) || 0,
         curp: curp || '',
-        edad: edad || 0,
+        edad: parseInt(edad) || 0,
         direccion: direccion || '',
         localidad: localidad || '',
         cp: cp || '',
         telefono: telefono || '',
         correo: correo || '',
         motivo: motivo || '',
-        cardexUrl: cardexUrl || ''
+        cardexPdf: cardexPdfPath
       }
     });
 
@@ -263,6 +314,10 @@ app.post('/api/solicitudes', async (req, res) => {
     });
   } catch (error) {
     console.error(error);
+    // Eliminar el archivo subido si ocurre un error durante el guardado en la BD
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
     res.status(500).json({ error: 'Error al crear solicitud' });
   }
 });
