@@ -144,22 +144,6 @@ const Login = () => {
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#8B2B91] focus:border-transparent outline-none transition"
               />
             </div>
-
-            {!isLogin && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Rol</label>
-                <select 
-                  name="rol"
-                  value={formData.rol}
-                  onChange={(e) => setFormData({ ...formData, rol: e.target.value })}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#8B2B91] focus:border-transparent outline-none transition"
-                >
-                  <option value="ALUMNO">Alumno</option>
-                  <option value="ADMIN">Administrador</option>
-                </select>
-              </div>
-            )}
-
             <button type="submit" className="w-full bg-[#8B2B91] hover:bg-[#7a2580] text-white font-bold py-3 rounded-lg transition duration-300 shadow-md mt-6">
               {isLogin ? 'Acceder al Portal' : 'Crear Cuenta'}
             </button>

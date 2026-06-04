@@ -30,7 +30,7 @@ const Navbar = () => {
   const navItems = [
     { path: '/home', label: 'Home', visible: true },
     { path: '/convocatorias', label: 'Convocatorias', visible: isAuthenticated },
-    { path: '/status', label: 'Status', visible: isAuthenticated && userRole?.toUpperCase() === 'ALUMNO' },
+    { path: '/status', label: 'Mis Solicitudes', visible: isAuthenticated && userRole?.toUpperCase() === 'ALUMNO' },
     { path: '/gestion-convocatorias', label: 'Gestión de Convocatorias', visible: isAuthenticated && userRole?.toUpperCase() === 'ADMIN' },
     { path: '/', label: 'Iniciar Sesión', visible: !isAuthenticated },
     { path: '/?register=true', label: 'Registrarse', visible: !isAuthenticated },
@@ -100,7 +100,7 @@ const Navbar = () => {
                         onClick={handleLogout}
                         className="w-full text-left px-3 py-2 rounded-xl text-sm font-medium bg-red-600 hover:bg-red-700 transition mt-2"
                       >
-                        Logout
+                        Cerrar Sesión
                       </button>
                     </div>
                   )}
