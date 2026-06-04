@@ -2,15 +2,20 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import logoUVP from '../assets/logo_uvp_black.png';
 
+// BARRA DE NAVEGACIÓN INSTITUCIONAL
 const Navbar = () => {
+  // Navegación y Rutas
   const navigate = useNavigate();
   const location = useLocation();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  //ESTADOS Y ATRIBUTOS DE SESIÓN / USUARIO
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const userRole = localStorage.getItem('userRole');
   const userEmail = localStorage.getItem('userEmail') || '';
   const isAuthenticated = Boolean(userRole);
 
+  // MANEJADORES DE EVENTOS Y LOGOUT
+  // Cierra la sesión y limpia datos del usuario
   const handleLogout = () => {
     localStorage.removeItem('userRole');
     localStorage.removeItem('userEmail');
@@ -19,14 +24,21 @@ const Navbar = () => {
     window.location.href = '/';
   };
 
+  // Determinar si una ruta de navegación está activa
   const isActive = (path: string) => {
     if (path.startsWith('/?')) {
       return location.pathname === '/' && location.search.includes('register');
     }
-
     return location.pathname === path;
   };
 
+  // Manejar la navegación entre rutas
+  const handleNavigate = (path: string) => {
+    setIsMenuOpen(false);
+    navigate(path);
+  };
+
+  // CONFIGURACIÓN DE OPCIONES DEL MENÚ
   const navItems = [
     { path: '/home', label: 'Home', visible: true },
     { path: '/convocatorias', label: 'Convocatorias', visible: isAuthenticated },
@@ -36,16 +48,13 @@ const Navbar = () => {
     { path: '/?register=true', label: 'Registrarse', visible: !isAuthenticated },
   ];
 
-  const handleNavigate = (path: string) => {
-    setIsMenuOpen(false);
-    navigate(path);
-  };
-
+  // VISTA / RENDERIZADO JSX
   return (
     <nav className="relative bg-[#8B2B91] text-white shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
+          
+          {/* SUBSECCIÓN: Logotipo Institucional */}
           <div className="flex items-center space-x-3 cursor-pointer" onClick={() => handleNavigate('/home')}>
             <div className="h-10 px-3 bg-white flex items-center justify-center rounded">
               <img src={logoUVP} alt="UVP Logo" className="h-8 w-auto object-contain" />
@@ -53,10 +62,8 @@ const Navbar = () => {
             <span className="font-bold text-sm hidden sm:inline">Gestión de Becas UVP</span>
           </div>
 
-          {/* Hamburguesa siempre visible */}
-          <div
-            className="relative"
-          >
+          {/* SUBSECCIÓN: Menú Hamburguesa e Items Desplegables */}
+          <div className="relative">
             <button
               onClick={() => setIsMenuOpen((prev) => !prev)}
               className="inline-flex items-center justify-center p-2 rounded-md hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/50"
@@ -77,6 +84,8 @@ const Navbar = () => {
             {isMenuOpen && (
               <div className="absolute right-0 mt-2 w-64 bg-[#7a2580] rounded-2xl border border-white/10 shadow-2xl z-50">
                 <div className="px-3 py-3 space-y-1">
+                  
+                  {/* Mapeo de Items del Menú */}
                   {navItems.map(
                     (item) =>
                       item.visible && (
@@ -93,6 +102,7 @@ const Navbar = () => {
                       )
                   )}
 
+                  {/* Sección de Datos de Usuario y Logout */}
                   {isAuthenticated && (
                     <div className="border-t border-white/10 pt-3">
                       <p className="px-3 py-2 text-xs text-gray-200 truncate">{userEmail}</p>

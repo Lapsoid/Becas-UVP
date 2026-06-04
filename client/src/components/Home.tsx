@@ -1,12 +1,16 @@
 import Navbar from './Navbar';
 
+// Vista HOME
 const Home = () => {
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Barra de Navegación Superior */}
       <Navbar />
       
+      {/* Contenido Principal de la Página */}
       <main className="max-w-7xl mx-auto px-4 py-12">
-        {/* Header */}
+        
+        {/* SUBSECCIÓN: Encabezado e Introducción */}
         <div className="mb-12">
           <h1 className="text-4xl font-bold text-gray-800 mb-4">Bienvenido al Sistema de Gestión de Becas</h1>
           <p className="text-gray-600 text-lg">
@@ -14,9 +18,9 @@ const Home = () => {
           </p>
         </div>
 
-        {/* Main Content */}
+        {/* SUBSECCIÓN: Cuadrícula de Información General y Requisitos */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Información General */}
+          {/* Tarjeta: Información General */}
           <div className="bg-white rounded-xl shadow-md p-8 border-l-4 border-[#8B2B91]">
             <h2 className="text-2xl font-bold text-gray-800 mb-4">Información General</h2>
             <p className="text-gray-600 mb-4">
@@ -42,7 +46,7 @@ const Home = () => {
             </ul>
           </div>
 
-          {/* Procesos y Requisitos */}
+          {/* Tarjeta: Procesos y Requisitos */}
           <div className="bg-white rounded-xl shadow-md p-8 border-l-4 border-[#8B2B91]">
             <h2 className="text-2xl font-bold text-gray-800 mb-4">Procesos y Requisitos</h2>
             <p className="text-gray-600 mb-4">
@@ -69,7 +73,7 @@ const Home = () => {
           </div>
         </div>
 
-        {/* Quick Links */}
+        {/* SUBSECCIÓN: Enlaces Rápidos y Accesos */}
         <div className="mt-12">
           <h2 className="text-2xl font-bold text-gray-800 mb-6">Enlaces Rápidos</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

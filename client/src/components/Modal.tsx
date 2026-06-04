@@ -1,3 +1,4 @@
+// PROPIEDADES DEL MODAL
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -6,6 +7,7 @@ interface ModalProps {
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
 }
 
+// CLASES DE CONFIGURACIÓN (TAMAÑOS DEL MODAL)
 const sizeClasses = {
   sm: 'max-w-md',
   md: 'max-w-2xl',
@@ -14,12 +16,19 @@ const sizeClasses = {
   full: 'max-w-[95vw]',
 };
 
+// COMPONENTE PRINCIPAL (MODAL GENERAL REUTILIZABLE)
 export const Modal = ({ isOpen, onClose, title, children, size = 'lg' }: ModalProps) => {
+  // Retornar nulo si el modal no debe estar visible
   if (!isOpen) return null;
+  
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Fondo semitransparente con desenfoque */}
       <div className="fixed inset-0 bg-white/70 backdrop-blur-sm" onClick={onClose}></div>
+      
+      {/* Contenedor del Modal */}
       <div className={`relative z-10 bg-white rounded-xl shadow-2xl w-full ${sizeClasses[size]} max-h-[90vh] overflow-hidden flex flex-col`}>
+        {/* Cabecera del Modal */}
         <div className="p-6 border-b border-gray-200 flex justify-between items-center bg-gray-50">
           <h2 className="text-2xl font-bold text-gray-800">{title}</h2>
           <button
@@ -31,6 +40,8 @@ export const Modal = ({ isOpen, onClose, title, children, size = 'lg' }: ModalPr
             </svg>
           </button>
         </div>
+        
+        {/* Cuerpo del Modal */}
         <div className="p-6 overflow-y-auto flex-1">
           {children}
         </div>

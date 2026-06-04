@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+// ESTRUCTURAS DE DATOS DE LA SOLICITUD
 interface Convocatoria {
   id: number;
   nombre: string;
@@ -27,7 +28,9 @@ interface SolicitudFormProps {
   loading?: boolean;
 }
 
+// COMPONENTE PRINCIPAL (FORMULARIO DE SOLICITUD DE BECA)
 export const SolicitudForm = ({ convocatoria, onSubmit, onCancel, loading }: SolicitudFormProps) => {
+  // ESTADOS DE DATOS Y ERRORES
   const [formData, setFormData] = useState<SolicitudFormData>({
     grado: '',
     promedio: '',
@@ -45,6 +48,8 @@ export const SolicitudForm = ({ convocatoria, onSubmit, onCancel, loading }: Sol
   const [fileError, setFileError] = useState<string>('');
   const [formError, setFormError] = useState<string>('');
 
+  // MANEJADORES DE VALORES Y ARCHIVOS
+  // Manejador genérico para inputs de texto y textareas
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -53,6 +58,7 @@ export const SolicitudForm = ({ convocatoria, onSubmit, onCancel, loading }: Sol
     }));
   };
 
+  // Manejador del archivo PDF de cárdex
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFileError('');
     if (e.target.files && e.target.files.length > 0) {
@@ -66,11 +72,13 @@ export const SolicitudForm = ({ convocatoria, onSubmit, onCancel, loading }: Sol
     }
   };
 
+  // MANEJADOR DE ENVÍO Y VALIDACIONES PREVIAS
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError('');
     setFileError('');
 
+    // Validación de archivo cárdex obligatorio
     if (!cardexFile) {
       setFileError('Por favor, selecciona tu cárdex en formato PDF.');
       return;
@@ -79,21 +87,25 @@ export const SolicitudForm = ({ convocatoria, onSubmit, onCancel, loading }: Sol
     const promedioVal = parseFloat(formData.promedio);
     const edadVal = parseInt(formData.edad);
 
+    // Validación de promedio numérico
     if (isNaN(promedioVal) || promedioVal < 6 || promedioVal > 10) {
       setFormError('Por favor, ingresa un promedio válido entre 6.0 y 10.0.');
       return;
     }
 
+    // Validación de promedio mínimo
     if (promedioVal < convocatoria.promedioMinimo) {
       setFormError(`Tu promedio (${promedioVal}) es menor al promedio mínimo requerido (${convocatoria.promedioMinimo}) para esta convocatoria.`);
       return;
     }
 
+    // Validación de edad mínima
     if (isNaN(edadVal) || edadVal < 17) {
       setFormError('La edad mínima para postularse es 17 años.');
       return;
     }
 
+    // Creación del objeto FormData para envío multipart/form-data
     const data = new FormData();
     data.append('grado', formData.grado);
     data.append('promedio', formData.promedio);
@@ -110,22 +122,27 @@ export const SolicitudForm = ({ convocatoria, onSubmit, onCancel, loading }: Sol
     await onSubmit(data);
   };
 
+  // Clases CSS de Tailwind reutilizables
   const inputClass = "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B2B91] focus:border-transparent";
   const labelClass = "block text-sm font-medium text-gray-700 mb-1";
 
+  // VISTA / RENDERIZADO JSX
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Información del programa de beca */}
       <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
         <h3 className="font-bold text-[#8B2B91]">{convocatoria.nombre}</h3>
         <p className="text-sm text-gray-600">Tipo: {convocatoria.tipo} | Promedio mínimo: {convocatoria.promedioMinimo}</p>
       </div>
 
+      {/* Contenedor de Error General */}
       {formError && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm font-semibold">
           {formError}
         </div>
       )}
 
+      {/* Campos del Formulario */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className={labelClass}>Grado / Semestre</label>
@@ -182,6 +199,7 @@ export const SolicitudForm = ({ convocatoria, onSubmit, onCancel, loading }: Sol
         </div>
       </div>
 
+      {/* Botones de Envío y Cancelación */}
       <div className="flex gap-4 pt-4 border-t">
         <button
           type="submit"

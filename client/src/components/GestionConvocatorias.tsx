@@ -2,6 +2,7 @@ import Navbar from './Navbar';
 import Modal from './Modal';
 import { useEffect, useState } from 'react';
 
+// MODELOS
 interface Usuario {
   id: number;
   nombre: string;
@@ -37,7 +38,9 @@ interface Convocatoria {
   estado?: string;
 }
 
+// GESTIÓN DE CONVOCATORIAS - VISTA ADMIN
 const GestionConvocatorias = () => {
+  // ESTADOS DE CONTROL Y REGISTROS
   const [convocatorias, setConvocatorias] = useState<Convocatoria[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -61,10 +64,12 @@ const GestionConvocatorias = () => {
     message: ''
   });
 
+  // CARGA INICIAL DE DATOS
   useEffect(() => {
     fetchConvocatorias();
   }, []);
 
+  // MANEJADORES DE OPERACIONES CRUD
   const fetchConvocatorias = () => {
     fetch('http://localhost:3000/api/convocatorias')
       .then(res => res.json())
@@ -181,6 +186,7 @@ const GestionConvocatorias = () => {
     setEditingId(null);
   };
 
+  // MANEJADORES DE SOLICITUDES Y ACTUALIZACIÓN DE ESTADOS
   const handleViewSolicitudes = async (convocatoria: Convocatoria) => {
     setSelectedConvocatoria(convocatoria);
     setShowSolicitudesModal(true);
@@ -237,6 +243,7 @@ const GestionConvocatorias = () => {
     }
   };
 
+  // Pantalla de carga
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -248,10 +255,13 @@ const GestionConvocatorias = () => {
     );
   }
 
+  // VISTA / RENDERIZADO JSX
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Barra de navegación superior */}
       <Navbar />
       
+      {/* Contenido de Administración */}
       <main className="max-w-7xl mx-auto px-4 py-12">
         <div className="flex justify-between items-center mb-8">
           <div>

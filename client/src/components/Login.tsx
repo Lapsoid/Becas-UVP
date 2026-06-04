@@ -2,7 +2,9 @@ import { useState } from 'react';
 import logoUVP from '../assets/logo_uvp_black.png';
 import Modal from './Modal';
 
+// INTERFAZ DE ACCESO Y REGISTRO)
 const Login = () => {
+  // ESTADOS DEL FORMULARIO Y MODALES
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     nombre: '',
@@ -11,15 +13,66 @@ const Login = () => {
     password: '',
     rol: 'ALUMNO'
   });
-  
+  const [submitted, setSubmitted] = useState(false);
   const [alertInfo, setAlertInfo] = useState<{ isOpen: boolean; title: string; message: string }>({
     isOpen: false,
     title: '',
     message: ''
   });
 
+  // REGLAS Y CONDICIONES DE VALIDACIÓN
+  // Validación: correo no vacío, debe terminar con @uvp.edu.mx y no ser solo el dominio
+  const isEmailInvalid = formData.email !== '' && (
+    !formData.email.endsWith('@uvp.edu.mx') || formData.email.trim() === '@uvp.edu.mx'
+  );
+
+  // Validación: contraseña mayor a 6 caracteres
+  const isPasswordTooShort = formData.password !== '' && formData.password.length <= 6;
+
+  // Mensajes de error específicos por campo
+  const errors = {
+    nombre: !isLogin && submitted && !formData.nombre.trim() ? 'El nombre completo es obligatorio.' : '',
+    matricula: !isLogin && submitted && !formData.matricula.trim() ? 'La matrícula es obligatoria.' : '',
+    email: submitted && !formData.email.trim() 
+      ? 'El correo institucional es obligatorio.' 
+      : isEmailInvalid 
+      ? 'La dirección de correo electrónico no es válida.' 
+      : '',
+    password: submitted && !formData.password 
+      ? 'La contraseña es obligatoria.' 
+      : isPasswordTooShort 
+      ? 'La contraseña es demasiado corta (debe tener más de 6 caracteres).' 
+      : '',
+  };
+
+  // Comprobar si hay algún campo vacío requerido
+  const hasEmptyFields = isLogin 
+    ? (!formData.email.trim() || !formData.password)
+    : (!formData.nombre.trim() || !formData.matricula.trim() || !formData.email.trim() || !formData.password);
+
+  // MANEJADORES DE ACCIONES Y EVENTOS
+  // Alternar pestañas de login/registro y limpiar el formulario y errores
+  const handleTabChange = (loginMode: boolean) => {
+    setIsLogin(loginMode);
+    setSubmitted(false);
+    setFormData({
+      nombre: '',
+      matricula: '',
+      email: '',
+      password: '',
+      rol: 'ALUMNO'
+    });
+  };
+
+  // Enviar el formulario tras pasar validaciones
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitted(true);
+
+    if (hasEmptyFields || isEmailInvalid || isPasswordTooShort) {
+      return;
+    }
+    
     const endpoint = isLogin ? '/api/login' : '/api/register';
     
     try {
@@ -54,10 +107,12 @@ const Login = () => {
     }
   };
 
+  // Manejar el cambio de valor en los inputs
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // VISTA / RENDERIZADO JSX
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-between font-sans">
       {/* Encabezado Institucional */}
@@ -79,31 +134,37 @@ const Login = () => {
           {/* Toggles de Pestaña */}
           <div className="flex mb-8 border-b">
             <button 
-              onClick={() => setIsLogin(true)}
+              onClick={() => handleTabChange(true)}
               className={`flex-1 pb-4 font-bold transition ${isLogin ? 'border-b-2 border-[#8B2B91] text-[#8B2B91]' : 'text-gray-400'}`}
             >
               Iniciar Sesión
             </button>
             <button 
-              onClick={() => setIsLogin(false)}
+              onClick={() => handleTabChange(false)}
               className={`flex-1 pb-4 font-bold transition ${!isLogin ? 'border-b-2 border-[#8B2B91] text-[#8B2B91]' : 'text-gray-400'}`}
             >
               Registrarse
             </button>
           </div>
 
-          <form className="space-y-4" onSubmit={handleSubmit} style={{ minHeight: '300px' }}>
+          {/* Formulario */}
+          <form className="space-y-4" onSubmit={handleSubmit} noValidate style={{ minHeight: '300px' }}>
             {!isLogin && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Nombre Completo</label>
                 <input 
                   name="nombre"
                   type="text" 
-                  required={!isLogin}
+                  value={formData.nombre}
                   onChange={handleInputChange}
                   placeholder="Tu nombre"
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#8B2B91] focus:border-transparent outline-none transition"
+                  className={`w-full px-4 py-3 rounded-lg border focus:ring-2 focus:border-transparent outline-none transition ${
+                    errors.nombre 
+                      ? 'border-red-500 focus:ring-red-500' 
+                      : 'border-gray-300 focus:ring-[#8B2B91]'
+                  }`}
                 />
+                {errors.nombre && <p className="text-red-500 text-xs mt-1">{errors.nombre}</p>}
               </div>
             )}
 
@@ -113,11 +174,16 @@ const Login = () => {
                 <input 
                   name="matricula"
                   type="text" 
-                  required={!isLogin}
+                  value={formData.matricula}
                   onChange={handleInputChange}
-                  placeholder="Ej. 20261234"
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#8B2B91] focus:border-transparent outline-none transition"
+                  placeholder="Ej. TI47580"
+                  className={`w-full px-4 py-3 rounded-lg border focus:ring-2 focus:border-transparent outline-none transition ${
+                    errors.matricula 
+                      ? 'border-red-500 focus:ring-red-500' 
+                      : 'border-gray-300 focus:ring-[#8B2B91]'
+                  }`}
                 />
+                {errors.matricula && <p className="text-red-500 text-xs mt-1">{errors.matricula}</p>}
               </div>
             )}
 
@@ -126,11 +192,16 @@ const Login = () => {
               <input 
                 name="email"
                 type="email" 
-                required
+                value={formData.email}
                 onChange={handleInputChange}
-                placeholder="tu.correo@uvp.mx"
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#8B2B91] focus:border-transparent outline-none transition"
+                placeholder="tu.correo@uvp.edu.mx"
+                className={`w-full px-4 py-3 rounded-lg border focus:ring-2 focus:border-transparent outline-none transition ${
+                  errors.email 
+                    ? 'border-red-500 focus:ring-red-500' 
+                    : 'border-gray-300 focus:ring-[#8B2B91]'
+                }`}
               />
+              {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
             </div>
 
             <div>
@@ -138,13 +209,27 @@ const Login = () => {
               <input 
                 name="password"
                 type="password" 
-                required
+                value={formData.password}
                 onChange={handleInputChange}
                 placeholder="••••••••"
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#8B2B91] focus:border-transparent outline-none transition"
+                className={`w-full px-4 py-3 rounded-lg border focus:ring-2 focus:border-transparent outline-none transition ${
+                  errors.password 
+                    ? 'border-red-500 focus:ring-red-500' 
+                    : 'border-gray-300 focus:ring-[#8B2B91]'
+                }`}
               />
+              {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
             </div>
-            <button type="submit" className="w-full bg-[#8B2B91] hover:bg-[#7a2580] text-white font-bold py-3 rounded-lg transition duration-300 shadow-md mt-6">
+            
+            <button 
+              type="submit" 
+              disabled={isEmailInvalid}
+              className={`w-full font-bold py-3 rounded-lg transition duration-300 shadow-md mt-6 ${
+                isEmailInvalid 
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed shadow-none' 
+                  : 'bg-[#8B2B91] hover:bg-[#7a2580] text-white'
+              }`}
+            >
               {isLogin ? 'Acceder al Portal' : 'Crear Cuenta'}
             </button>
           </form>
@@ -157,6 +242,7 @@ const Login = () => {
         </div>
       </main>
 
+      {/* Pie de Página */}
       <footer className="bg-gray-100 p-8 border-t border-gray-200">
         <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 text-sm text-gray-600">
           <div>
@@ -170,6 +256,7 @@ const Login = () => {
         </div>
       </footer>
 
+      {/* Modales de Alerta */}
       <Modal
         isOpen={alertInfo.isOpen}
         onClose={() => setAlertInfo({ ...alertInfo, isOpen: false })}

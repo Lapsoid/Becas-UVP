@@ -3,6 +3,7 @@ import Navbar from './Navbar';
 import Modal from './Modal';
 import SolicitudForm from './SolicitudForm';
 
+// ESTRUCTURA DE CONVOCATORIA
 interface Convocatoria {
   id: number;
   nombre: string;
@@ -13,7 +14,9 @@ interface Convocatoria {
   fechaCierre: string;
 }
 
+// COMPONENTE PRINCIPAL (LISTADO DE CONVOCATORIAS DISPONIBLES)
 export const ListaConvocatorias = () => {
+  // ESTADOS DEL COMPONENTE
   const [convocatorias, setConvocatorias] = useState<Convocatoria[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -25,6 +28,7 @@ export const ListaConvocatorias = () => {
     message: ''
   });
 
+  // CARGA DE CONVOCATORIAS DESDE LA API
   useEffect(() => {
     fetch('http://localhost:3000/api/convocatorias')
       .then(res => res.json())
@@ -38,6 +42,7 @@ export const ListaConvocatorias = () => {
       });
   }, []);
 
+  // MANEJADORES DE POSTULACIONES Y ENVIÓ DEL FORMULARIO
   const handlePostulateClick = async (convocatoriaId: number) => {
     const userId = localStorage.getItem('userId');
     const userRole = localStorage.getItem('userRole');
@@ -95,6 +100,7 @@ export const ListaConvocatorias = () => {
     }
   };
 
+  // Manejador para enviar el formulario de postulación
   const handleFormSubmit = async (formData: FormData) => {
     const userId = localStorage.getItem('userId');
     if (!userId || !selectedConvocatoria) return;
@@ -106,7 +112,6 @@ export const ListaConvocatorias = () => {
 
       const response = await fetch('http://localhost:3000/api/solicitudes', {
         method: 'POST',
-        // Do not set Content-Type header when sending FormData!
         body: formData
       });
 
@@ -138,6 +143,7 @@ export const ListaConvocatorias = () => {
     }
   };
 
+  // Vista de pantalla de carga
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -149,11 +155,17 @@ export const ListaConvocatorias = () => {
     );
   }
 
+  // VISTA / RENDERIZADO JSX (GRID Y MODALES)
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Barra de Navegación */}
       <Navbar />
+      
+      {/* Contenido Principal */}
       <main className="max-w-7xl mx-auto px-4 py-12">
         <h1 className="text-3xl font-bold text-gray-800 mb-8">Convocatorias Disponibles</h1>
+        
+        {/* Grid de Convocatorias */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {convocatorias
             .filter((beca) => {
@@ -169,6 +181,7 @@ export const ListaConvocatorias = () => {
               <h2 className="text-xl font-bold mt-3 text-gray-800">{beca.nombre}</h2>
               <p className="text-gray-600 mt-2 text-sm line-clamp-3">{beca.descripcion}</p>
               
+              {/* Fechas de la Convocatoria */}
               <div className="mt-4 grid grid-cols-2 gap-2 text-xs border-t border-dashed pt-3 pb-1">
                 <div>
                   <p className="text-gray-400 font-medium">Fecha De Apertura</p>
@@ -184,6 +197,7 @@ export const ListaConvocatorias = () => {
                 </div>
               </div>
 
+              {/* Promedio Mínimo y Botón de Postulación */}
               <div className="mt-4 flex justify-between items-center border-t pt-4">
                 <div className="text-sm">
                   <p className="text-gray-400">Promedio Mínimo</p>
@@ -200,7 +214,7 @@ export const ListaConvocatorias = () => {
           ))}
         </div>
 
-        {/* Modal de postulación */}
+        {/* Modal de Formulario de Postulación */}
         <Modal
           isOpen={showModal}
           onClose={() => { setShowModal(false); setSelectedConvocatoria(null); }}
