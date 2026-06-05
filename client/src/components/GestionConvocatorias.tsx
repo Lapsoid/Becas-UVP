@@ -131,13 +131,33 @@ const GestionConvocatorias = () => {
     }
   };
 
+  // Formatea una fecha ISO a YYYY-MM-DD para el input type="date"
+  const toDateInputValue = (isoDate: string): string => {
+    if (!isoDate) return '';
+    const d = new Date(isoDate);
+    if (isNaN(d.getTime())) return '';
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  // Devuelve true si la fecha de cierre ya pasó
+  const isConvocatoriaCerrada = (fechaCierre: string): boolean => {
+    const cierre = new Date(fechaCierre);
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    cierre.setHours(0, 0, 0, 0);
+    return cierre < hoy;
+  };
+
   const handleEdit = (convocatoria: Convocatoria) => {
     setFormData({
       nombre: convocatoria.nombre,
       descripcion: convocatoria.descripcion,
       tipo: convocatoria.tipo,
       promedioMinimo: convocatoria.promedioMinimo,
-      fechaCierre: convocatoria.fechaCierre
+      fechaCierre: toDateInputValue(convocatoria.fechaCierre)
     });
     setEditingId(convocatoria.id);
     setShowForm(true);
@@ -386,7 +406,17 @@ const GestionConvocatorias = () => {
             <p className="text-center text-gray-500 my-8">No hay solicitudes para esta convocatoria.</p>
           ) : (
             <div className="space-y-4">
-              {solicitudes.map((solicitud) => (
+              {/* Aviso de convocatoria cerrada */}
+              {selectedConvocatoria && isConvocatoriaCerrada(selectedConvocatoria.fechaCierre) && (
+                <div className="flex items-center gap-2 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg px-4 py-3 text-sm">
+                  <svg className="w-4 h-4 shrink-0 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                  </svg>
+                  <span>Esta convocatoria está <strong>Cerrada</strong>, pero aún puedes gestionar el estado de las solicitudes.</span>
+                </div>
+              )}
+              {solicitudes.map((solicitud) => {
+                return (
                 <div key={solicitud.id} className="border border-gray-200 rounded-lg p-4 shadow-sm">
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div className="flex-1">
@@ -461,7 +491,8 @@ const GestionConvocatorias = () => {
                     </div>
                   )}
                 </div>
-              ))}
+              );
+              })}
             </div>
           )}
         </Modal>
@@ -505,7 +536,11 @@ const GestionConvocatorias = () => {
                         </div>
                         <div>
                           <p className="text-xs text-gray-400 uppercase">Estado</p>
-                          <p className="font-semibold text-[#8B2B91]">Activa</p>
+                          {isConvocatoriaCerrada(convocatoria.fechaCierre) ? (
+                            <span className="inline-block px-2 py-0.5 rounded-full text-xs font-bold bg-gray-200 text-gray-600">Cerrada</span>
+                          ) : (
+                            <span className="inline-block px-2 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-[#8B2B91]">Activa</span>
+                          )}
                         </div>
                       </div>
                     </div>
