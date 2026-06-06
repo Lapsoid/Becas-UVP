@@ -64,6 +64,18 @@ const GestionConvocatorias = () => {
     message: ''
   });
 
+  const [confirmInfo, setConfirmInfo] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {}
+  });
+
   // CARGA INICIAL DE DATOS
   useEffect(() => {
     fetchConvocatorias();
@@ -164,34 +176,32 @@ const GestionConvocatorias = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('¿Estás seguro de que deseas eliminar esta convocatoria?')) {
-      try {
-        const response = await fetch(`http://localhost:3000/api/convocatorias/${id}`, {
-          method: 'DELETE'
-        });
+    try {
+      const response = await fetch(`http://localhost:3000/api/convocatorias/${id}`, {
+        method: 'DELETE'
+      });
 
-        if (response.ok) {
-          fetchConvocatorias();
-          setAlertInfo({
-            isOpen: true,
-            title: 'Eliminado',
-            message: 'Convocatoria eliminada con éxito'
-          });
-        } else {
-          setAlertInfo({
-            isOpen: true,
-            title: 'Error',
-            message: 'Error al eliminar la convocatoria'
-          });
-        }
-      } catch (error) {
-        console.error('Error:', error);
+      if (response.ok) {
+        fetchConvocatorias();
         setAlertInfo({
           isOpen: true,
-          title: 'Error de Conexión',
-          message: 'Error de conexión con el servidor.'
+          title: 'Eliminado',
+          message: 'Convocatoria eliminada con éxito'
+        });
+      } else {
+        setAlertInfo({
+          isOpen: true,
+          title: 'Error',
+          message: 'Error al eliminar la convocatoria'
         });
       }
+    } catch (error) {
+      console.error('Error:', error);
+      setAlertInfo({
+        isOpen: true,
+        title: 'Error de Conexión',
+        message: 'Error de conexión con el servidor.'
+      });
     }
   };
 
@@ -559,7 +569,14 @@ const GestionConvocatorias = () => {
                       Editar
                     </button>
                     <button
-                      onClick={() => handleDelete(convocatoria.id)}
+                      onClick={() => {
+                        setConfirmInfo({
+                          isOpen: true,
+                          title: 'Confirmar Eliminación',
+                          message: `¿Estás seguro de que deseas eliminar la convocatoria "${convocatoria.nombre}"? Esta acción no se puede deshacer.`,
+                          onConfirm: () => handleDelete(convocatoria.id)
+                        });
+                      }}
                       className="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-700 transition"
                     >
                       Eliminar
@@ -587,6 +604,35 @@ const GestionConvocatorias = () => {
           >
             Aceptar
           </button>
+        </div>
+      </Modal>
+
+      {/* Modal de Confirmación */}
+      <Modal
+        isOpen={confirmInfo.isOpen}
+        onClose={() => setConfirmInfo({ ...confirmInfo, isOpen: false })}
+        title={confirmInfo.title}
+        size="sm"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-600">{confirmInfo.message}</p>
+          <div className="flex gap-4">
+            <button
+              onClick={() => {
+                confirmInfo.onConfirm();
+                setConfirmInfo({ ...confirmInfo, isOpen: false });
+              }}
+              className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded-lg transition"
+            >
+              Eliminar
+            </button>
+            <button
+              onClick={() => setConfirmInfo({ ...confirmInfo, isOpen: false })}
+              className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-2 rounded-lg transition"
+            >
+              Cancelar
+            </button>
+          </div>
         </div>
       </Modal>
     </div>
