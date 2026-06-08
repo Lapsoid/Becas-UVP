@@ -154,13 +154,22 @@ app.get('/api/convocatorias', async (req, res) => {
 app.post('/api/convocatorias', async (req, res) => {
   const { nombre, descripcion, tipo, promedioMinimo, fechaCierre } = req.body;
 
+  if (!nombre || !descripcion || !tipo || promedioMinimo === undefined || promedioMinimo === null || !fechaCierre) {
+    return res.status(400).json({ error: 'Todos los campos son obligatorios.' });
+  }
+
+  const minAvg = parseFloat(promedioMinimo as any);
+  if (isNaN(minAvg) || minAvg < 6) {
+    return res.status(400).json({ error: 'El promedio mínimo debe ser de al menos 6.' });
+  }
+
   try {
     const nuevaConvocatoria = await prisma.convocatoria.create({
       data: {
         nombre,
         descripcion,
         tipo,
-        promedioMinimo,
+        promedioMinimo: minAvg,
         fechaApertura: new Date(),
         fechaCierre: new Date(fechaCierre)
       }
@@ -178,6 +187,15 @@ app.put('/api/convocatorias/:id', async (req, res) => {
   const { id } = req.params;
   const { nombre, descripcion, tipo, promedioMinimo, fechaCierre } = req.body;
 
+  if (!nombre || !descripcion || !tipo || promedioMinimo === undefined || promedioMinimo === null || !fechaCierre) {
+    return res.status(400).json({ error: 'Todos los campos son obligatorios.' });
+  }
+
+  const minAvg = parseFloat(promedioMinimo as any);
+  if (isNaN(minAvg) || minAvg < 6) {
+    return res.status(400).json({ error: 'El promedio mínimo debe ser de al menos 6.' });
+  }
+
   try {
     const convocatoriaActualizada = await prisma.convocatoria.update({
       where: { id: parseInt(id) },
@@ -185,7 +203,7 @@ app.put('/api/convocatorias/:id', async (req, res) => {
         nombre,
         descripcion,
         tipo,
-        promedioMinimo,
+        promedioMinimo: minAvg,
         fechaCierre: new Date(fechaCierre)
       }
     });
@@ -266,11 +284,37 @@ app.post('/api/solicitudes', upload.single('cardexPdf'), async (req, res) => {
     const convocatoriaIdParsed = parseInt(convocatoriaId);
 
     if (isNaN(usuarioIdParsed) || isNaN(convocatoriaIdParsed)) {
+      if (req.file && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
       return res.status(400).json({ error: 'usuarioId y convocatoriaId válidos son requeridos.' });
+    }
+
+    if (!grado || !promedio || !curp || !edad || !direccion || !localidad || !cp || !telefono || !correo || !motivo) {
+      if (req.file && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+      return res.status(400).json({ error: 'Todos los campos son obligatorios.' });
     }
 
     if (!req.file) {
       return res.status(400).json({ error: 'El archivo del cárdex (PDF) es requerido.' });
+    }
+
+    // Obtener convocatoria para validar promedio mínimo
+    const convocatoria = await prisma.convocatoria.findUnique({
+      where: { id: convocatoriaIdParsed }
+    });
+
+    if (!convocatoria) {
+      fs.unlinkSync(req.file.path);
+      return res.status(404).json({ error: 'La convocatoria especificada no existe.' });
+    }
+
+    const promedioVal = parseFloat(promedio);
+    if (isNaN(promedioVal) || promedioVal < convocatoria.promedioMinimo) {
+      fs.unlinkSync(req.file.path);
+      return res.status(400).json({ error: `El promedio ingresado (${promedioVal}) es menor al requerido (${convocatoria.promedioMinimo}) para esta convocatoria.` });
     }
 
     const cardexPdfPath = `/uploads/${req.file.filename}`;

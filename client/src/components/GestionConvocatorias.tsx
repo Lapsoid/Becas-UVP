@@ -53,10 +53,11 @@ const GestionConvocatorias = () => {
   const [formData, setFormData] = useState({
     nombre: '',
     descripcion: '',
-    tipo: 'académica',
+    tipo: 'ACADEMICA',
     promedioMinimo: 0,
     fechaCierre: ''
   });
+  const [submitted, setSubmitted] = useState(false);
   
   const [alertInfo, setAlertInfo] = useState<{ isOpen: boolean; title: string; message: string }>({
     isOpen: false,
@@ -75,6 +76,20 @@ const GestionConvocatorias = () => {
     message: '',
     onConfirm: () => {}
   });
+
+  // REGLAS Y CONDICIONES DE VALIDACIÓN
+  const isPromedioInvalid = formData.promedioMinimo !== 0 && formData.promedioMinimo < 6;
+
+  const errors = {
+    nombre: submitted && !formData.nombre.trim() ? 'El nombre de la convocatoria es obligatorio.' : '',
+    descripcion: submitted && !formData.descripcion.trim() ? 'La descripción es obligatoria.' : '',
+    promedioMinimo: submitted && (!formData.promedioMinimo || formData.promedioMinimo <= 0)
+      ? 'El promedio mínimo es obligatorio y debe ser de al menos 6.' 
+      : isPromedioInvalid || (submitted && formData.promedioMinimo < 6)
+      ? 'El promedio mínimo debe ser de al menos 6.' 
+      : '',
+    fechaCierre: submitted && !formData.fechaCierre ? 'La fecha de cierre es obligatoria.' : '',
+  };
 
   // CARGA INICIAL DE DATOS
   useEffect(() => {
@@ -99,12 +114,21 @@ const GestionConvocatorias = () => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: name === 'promedioMinimo' ? parseFloat(value) : value
+      [name]: name === 'promedioMinimo' ? (value === '' ? 0 : parseFloat(value)) : value
     });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitted(true);
+
+    const hasEmptyFields = !formData.nombre.trim() || !formData.descripcion.trim() || !formData.fechaCierre || !formData.promedioMinimo;
+    const isPromedioInvalidVal = formData.promedioMinimo < 6;
+
+    if (hasEmptyFields || isPromedioInvalidVal) {
+      return;
+    }
+
     const method = editingId ? 'PUT' : 'POST';
     const url = editingId 
       ? `http://localhost:3000/api/convocatorias/${editingId}`
@@ -214,6 +238,7 @@ const GestionConvocatorias = () => {
       fechaCierre: ''
     });
     setEditingId(null);
+    setSubmitted(false);
   };
 
   // MANEJADORES DE SOLICITUDES Y ACTUALIZACIÓN DE ESTADOS
@@ -315,7 +340,7 @@ const GestionConvocatorias = () => {
             <h2 className="text-2xl font-bold text-gray-800 mb-6">
               {editingId ? 'Editar Convocatoria' : 'Nueva Convocatoria'}
             </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} noValidate className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
                 <input
@@ -323,9 +348,13 @@ const GestionConvocatorias = () => {
                   name="nombre"
                   value={formData.nombre}
                   onChange={handleInputChange}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B2B91] focus:border-transparent"
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:border-transparent outline-none transition ${
+                    errors.nombre 
+                      ? 'border-red-500 focus:ring-red-500' 
+                      : 'border-gray-300 focus:ring-[#8B2B91]'
+                  }`}
                 />
+                {errors.nombre && <p className="text-red-500 text-xs mt-1">{errors.nombre}</p>}
               </div>
 
               <div>
@@ -334,10 +363,14 @@ const GestionConvocatorias = () => {
                   name="descripcion"
                   value={formData.descripcion}
                   onChange={handleInputChange}
-                  required
                   rows={4}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B2B91] focus:border-transparent"
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:border-transparent outline-none transition ${
+                    errors.descripcion 
+                      ? 'border-red-500 focus:ring-red-500' 
+                      : 'border-gray-300 focus:ring-[#8B2B91]'
+                  }`}
                 />
+                {errors.descripcion && <p className="text-red-500 text-xs mt-1">{errors.descripcion}</p>}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -361,12 +394,16 @@ const GestionConvocatorias = () => {
                   <input
                     type="number"
                     name="promedioMinimo"
-                    value={formData.promedioMinimo}
+                    value={formData.promedioMinimo || ''}
                     onChange={handleInputChange}
                     step="0.1"
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B2B91] focus:border-transparent"
+                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:border-transparent outline-none transition ${
+                      errors.promedioMinimo 
+                        ? 'border-red-500 focus:ring-red-500' 
+                        : 'border-gray-300 focus:ring-[#8B2B91]'
+                    }`}
                   />
+                  {errors.promedioMinimo && <p className="text-red-500 text-xs mt-1">{errors.promedioMinimo}</p>}
                 </div>
               </div>
 
@@ -377,9 +414,13 @@ const GestionConvocatorias = () => {
                   name="fechaCierre"
                   value={formData.fechaCierre}
                   onChange={handleInputChange}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#8B2B91] focus:border-transparent"
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:border-transparent outline-none transition ${
+                    errors.fechaCierre 
+                      ? 'border-red-500 focus:ring-red-500' 
+                      : 'border-gray-300 focus:ring-[#8B2B91]'
+                  }`}
                 />
+                {errors.fechaCierre && <p className="text-red-500 text-xs mt-1">{errors.fechaCierre}</p>}
               </div>
 
               <div className="flex gap-4 pt-4">
