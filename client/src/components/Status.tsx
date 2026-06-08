@@ -88,7 +88,7 @@ const Status = () => {
     );
   }
 
-  // VISTA / RENDERIZADO JSX
+  // UI
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Barra de Navegación */}

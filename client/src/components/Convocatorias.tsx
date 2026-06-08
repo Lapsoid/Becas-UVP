@@ -155,7 +155,7 @@ export const ListaConvocatorias = () => {
     );
   }
 
-  // VISTA / RENDERIZADO JSX (GRID Y MODALES)
+  // UI
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Barra de Navegación */}

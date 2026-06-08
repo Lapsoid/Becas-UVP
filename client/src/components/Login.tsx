@@ -112,7 +112,7 @@ const Login = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // VISTA / RENDERIZADO JSX
+  // UI
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-between font-sans">
       {/* Encabezado Institucional */}
